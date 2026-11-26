@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Service Canada Assistant</title>
+  <style>
+    :root {
+      --ink: #1c2834;
+      --muted: #5c6b78;
+      --paper: #f3f0e8;
+      --panel: #fffdf8;
+      --line: #e2dcd0;
+      --red: #b42318;
+      --navy: #1c2834;
+      --user: #243447;
+      --shadow: 0 18px 50px rgba(28, 40, 52, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(180, 35, 24, 0.08), transparent 28rem),
+        var(--paper);
+      font: 16px/1.5 "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      width: min(820px, calc(100% - 32px));
+      height: min(900px, calc(100vh - 32px));
+      margin: 16px auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding: 18px 22px;
+      color: white;
+      background: var(--navy);
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--red);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 650;
+    }
+
+    header p {
+      margin: 2px 0 0;
+      color: #d5dde6;
+      font-size: 0.9rem;
+    }
+
+    #thread {
+      flex: 1;
+      overflow: auto;
+      padding: 22px;
+    }
+
+    .welcome h2 {
+      margin: 8px 0 6px;
+      font-size: 1.7rem;
+      letter-spacing: -0.03em;
+    }
+
+    .welcome p {
+      margin: 0;
+      max-width: 38rem;
+      color: var(--muted);
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .suggestions button,
+    form button,
+    textarea {
+      font: inherit;
+    }
+
+    .suggestions button {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--ink);
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .suggestions button:hover,
+    form button:hover { border-color: #c8bfb2; }
+
+    article {
+      display: flex;
+      flex-direction: column;
+      max-width: 85%;
+      margin-top: 16px;
+    }
+
+    article.user { margin-left: auto; align-items: flex-end; }
+    article.assistant { margin-right: auto; }
+
+    .who {
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .body {
+      margin: 0;
+      white-space: pre-wrap;
+      padding: 12px 14px;
+      border-radius: 16px;
+    }
+
+    .body strong { font-weight: 700; }
+
+    article.user .body {
+      color: white;
+      background: var(--user);
+      border-bottom-right-radius: 4px;
+    }
+
+    article.assistant .body {
+      background: #f7f4ee;
+      border: 1px solid var(--line);
+      border-bottom-left-radius: 4px;
+    }
+
+    article.pending .body { color: var(--muted); }
+
+    form {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+
+    label { position: absolute; width: 1px; height: 1px; overflow: hidden; }
+
+    textarea {
+      flex: 1;
+      min-height: 52px;
+      max-height: 140px;
+      resize: vertical;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    textarea:focus, form button:focus-visible, .suggestions button:focus-visible {
+      outline: 2px solid var(--red);
+      outline-offset: 2px;
+    }
+
+    form button {
+      height: 52px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 14px;
+      color: white;
+      background: var(--red);
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    form button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="mark" aria-hidden="true">SC</div>
+      <div>
+        <h1>Service Canada Assistant</h1>
+        <p>Ask a question and get an answer from the indexed pages.</p>
+      </div>
+    </header>
+    <main id="thread" aria-live="polite">
+      <section class="welcome">
+        <h2>What do you need to know?</h2>
+        <p>Ask the way you would ask a colleague. Answers come only from the pages already stored for this assistant.</p>
+        <div class="suggestions">
+          <button type="button">Does Canada offer EI benefits?</button>
+          <button type="button">How do I get a passport?</button>
+          <button type="button">What is the Canadian Dental Care Plan?</button>
+        </div>
+      </section>
+    </main>
+    <form>
+      <label for="question">Your question</label>
+      <textarea id="question" rows="2" placeholder="Ask about a service, benefit, or program" required></textarea>
+      <button type="submit">Ask</button>
+    </form>
+  </div>
+  <script>
+    const form = document.querySelector("form");
+    const input = document.querySelector("#question");
+    const thread = document.querySelector("#thread");
+    const send = form.querySelector("button");
+    const welcome = document.querySelector(".welcome");
+
+    function appendFormatted(parent, text) {
+      const pattern = /\*\*(.+?)\*\*/g;
+      let last = 0;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        if (match.index > last) {
+          parent.append(document.createTextNode(text.slice(last, match.index)));
+        }
+        const strong = document.createElement("strong");
+        strong.textContent = match[1];
+        parent.append(strong);
+        last = pattern.lastIndex;
+      }
+      if (last < text.length) {
+        parent.append(document.createTextNode(text.slice(last)));
+      }
+    }
+
+    function addMessage(role, text) {
+      const article = document.createElement("article");
+      article.className = role;
+      const who = document.createElement("p");
+      who.className = "who";
+      who.textContent = role === "user" ? "You" : "Assistant";
+      const body = document.createElement("p");
+      body.className = "body";
+      if (role === "assistant") {
+        appendFormatted(body, text);
+      } else {
+        body.textContent = text;
+      }
+      article.append(who, body);
+      thread.append(article);
+      thread.scrollTop = thread.scrollHeight;
+      return article;
+    }
+
+    async function ask(question) {
+      welcome.hidden = true;
+      addMessage("user", question);
+      input.value = "";
+      send.disabled = true;
+      const pending = addMessage("pending", "Looking through the indexed pages…");
+      pending.querySelector(".who").textContent = "Assistant";
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+        const data = await response.json();
+        pending.remove();
+        addMessage("assistant", data.answer || data.error || "I do not know");
+      } catch (error) {
+        pending.remove();
+        addMessage("assistant", "The assistant could not be reached. Try again.");
+      } finally {
+        send.disabled = false;
+        input.focus();
+      }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const question = input.value.trim();
+      if (question) ask(question);
+    });
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    document.querySelectorAll(".suggestions button").forEach((button) => {
+      button.addEventListener("click", () => ask(button.textContent));
+    });
+  </script>
+</body>
+</html>
