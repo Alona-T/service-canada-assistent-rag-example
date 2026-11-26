@@ -84,3 +84,7 @@ Open [http://127.0.0.1:8765](http://127.0.0.1:8765), type a question, and press 
 ## Limits
 
 The index is a sample, not the full Service Canada site: at most 50 English HTML pages reached by walking links from the canada.ca homepage. French pages, PDFs, and anything the crawl never reaches are absent, so the assistant will say it does not know. Answers can also be wrong if the retrieved chunks are related but do not actually contain the fact you asked for.
+
+## Look
+<img width="1798" height="1706" alt="image" src="https://github.com/user-attachments/assets/6fcf006a-db76-4f85-8ed6-b0aa8596f91d" />
+
